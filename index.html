@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Travel Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    header {
+      background-color: #007acc;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    main {
+      padding: 20px;
+    }
+    section {
+      background-color: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+    }
+    .hidden {
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    .visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Smart Travel Dashboard</h1>
+  </header>
+
+  <main>
+    <section id="location">
+      <h2>Your Location</h2>
+      <p id="locationData">Getting your location...</p>
+    </section>
+
+    <section id="network">
+      <h2>Network Status</h2>
+      <p id="networkStatus">Detecting network...</p>
+    </section>
+
+    <section id="canvas-section" class="hidden">
+      <h2>Weather Alert</h2>
+      <canvas id="alertCanvas" width="300" height="150"></canvas>
+    </section>
+  </main>
+
+  <script>
+    // Get location using Geolocation API
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          document.getElementById('locationData').textContent = `Latitude: ${lat}, Longitude: ${lon}`;
+        },
+        function(error) {
+          document.getElementById('locationData').textContent = 'Unable to get your location.';
+        }
+      );
+    } else {
+      document.getElementById('locationData').textContent = 'Geolocation is not supported by your browser.';
+    }
+
+    // Check network info using Network Information API
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (connection) {
+      const type = connection.effectiveType;
+      const speed = connection.downlink;
+      document.getElementById('networkStatus').textContent = `Connection Type: ${type}, Speed: ${speed} Mbps`;
+    } else {
+      document.getElementById('networkStatus').textContent = 'Network information not available.';
+    }
+
+    // Draw alert on canvas using Canvas API
+    function drawCanvasAlert() {
+      const canvas = document.getElementById('alertCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#d90429';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = '18px Arial';
+      ctx.fillText('⚠️  Weather Alert Active!', 50, 80);
+    }
+
+    // Show canvas when it enters view using Intersection Observer API
+    const canvasSection = document.getElementById('canvas-section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          canvasSection.classList.remove('hidden');
+          canvasSection.classList.add('visible');
+          drawCanvasAlert();
+        }
+      });
+    }, {
+      threshold: 0.5
+    });
+
+    observer.observe(canvasSection);
+
+    // Simulate background task setup with service worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log('Service Worker registered for background tasks:', reg);
+          })
+          .catch(err => {
+            console.error('Service Worker registration failed:', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
